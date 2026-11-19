@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {AgentNonce} from "../src/AgentNonce.sol";
+import {NonceAgent} from "../src/NonceAgent.sol";
 
 contract MockAgentID {
     mapping(address => uint256) public balanceOf;
@@ -16,18 +16,18 @@ interface Vm {
     function expectRevert(bytes4) external;
 }
 
-contract AgentNonceTest {
+contract NonceAgentTest {
     Vm constant vm = Vm(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
 
     MockAgentID mock;
-    AgentNonce nft;
+    NonceAgent nft;
     address alice = address(0xA11CE);
     address bob = address(0xB0B);
     uint256 constant DIFF = 12; // ~4k hashes per solution — fast in tests
 
     function setUp() public {
         mock = new MockAgentID();
-        nft = new AgentNonce(address(mock), 10, 2, DIFF, "https://example.com/meta/");
+        nft = new NonceAgent(address(mock), 10, 2, DIFF, "https://example.com/meta/");
         mock.setHolder(alice, true);
     }
 
@@ -48,7 +48,7 @@ contract AgentNonceTest {
     function testNonAgentCannotMint() public {
         uint256 nonce = solve(bob);
         vm.prank(bob);
-        vm.expectRevert(AgentNonce.NotAgent.selector);
+        vm.expectRevert(NonceAgent.NotAgent.selector);
         nft.mint(nonce);
     }
 
@@ -56,7 +56,7 @@ contract AgentNonceTest {
         uint256 bad = 0;
         while (nft.isValidSolution(alice, bad)) bad++;
         vm.prank(alice);
-        vm.expectRevert(AgentNonce.InvalidNonce.selector);
+        vm.expectRevert(NonceAgent.InvalidNonce.selector);
         nft.mint(bad);
     }
 
@@ -93,7 +93,7 @@ contract AgentNonceTest {
         nft.mint(n2);
         uint256 n3 = solve(alice);
         vm.prank(alice);
-        vm.expectRevert(AgentNonce.WalletCapReached.selector);
+        vm.expectRevert(NonceAgent.WalletCapReached.selector);
         nft.mint(n3);
     }
 

@@ -1,4 +1,4 @@
-# AgentNonce
+# NonceAgent
 
 **A proof-of-work free-mint NFT that only Agent ID holders can earn.**
 
@@ -32,9 +32,9 @@ solutions are ever submitted on-chain.
 
 ## Contract
 
-- `src/AgentNonce.sol` — self-contained ERC-721 + PoW mint, no external
+- `src/NonceAgent.sol` — self-contained ERC-721 + PoW mint, no external
   dependencies, no owner/admin keys, no mint/pause/freeze backdoors.
-- Tests: `test/AgentNonce.t.sol` (Foundry) — non-agent rejection, invalid
+- Tests: `test/NonceAgent.t.sol` (Foundry) — non-agent rejection, invalid
   nonce rejection, valid mint, replay protection (same nonce dies after one
   use), wallet-binding of solutions, per-wallet cap, transfers.
   Run: `forge test` (7/7 passing).
@@ -49,8 +49,8 @@ solutions are ever submitted on-chain.
 
 ## Layout
 
-- `src/AgentNonce.sol` — contract
-- `test/AgentNonce.t.sol` — tests
+- `src/NonceAgent.sol` — contract
+- `test/NonceAgent.t.sol` — tests
 - `web/index.html` — single-file frontend with an in-browser Web Worker
   solver (connect wallet → Solve & Mint → sign)
 

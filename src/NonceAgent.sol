@@ -6,7 +6,7 @@ interface IAgentID {
     function balanceOf(address owner) external view returns (uint256);
 }
 
-/// @title AgentNonce — proof-of-work free-mint NFT for Agent ID holders
+/// @title NonceAgent — proof-of-work free-mint NFT for Agent ID holders
 /// @notice Minting is free but not effortless: the caller must (1) hold an
 ///         Agent ID (name.ai) and (2) submit a nonce whose
 ///         keccak256(contract, caller, mintIndex, nonce) hash clears the
@@ -16,10 +16,10 @@ interface IAgentID {
 ///         work by a verified agent wallet. Solving happens off-chain
 ///         (browser solver on the project site); only valid solutions are
 ///         ever submitted on-chain.
-contract AgentNonce {
+contract NonceAgent {
     // ---------------- ERC-721 state ----------------
-    string public name = "AgentNonce";
-    string public symbol = "ANONCE";
+    string public name = "NonceAgent";
+    string public symbol = "NONCE";
     string public baseURI;
 
     mapping(uint256 => address) private _owners;
@@ -76,7 +76,7 @@ contract AgentNonce {
         return uint256(puzzleHash(who, nonce)) >> (256 - difficulty) == 0;
     }
 
-    /// @notice Free-mint one AgentNonce NFT by presenting a valid nonce.
+    /// @notice Free-mint one NonceAgent NFT by presenting a valid nonce.
     function mint(uint256 nonce) external returns (uint256 tokenId) {
         if (agentId.balanceOf(msg.sender) == 0) revert NotAgent();
         if (mintedBy[msg.sender] >= maxPerWallet) revert WalletCapReached();
