@@ -13,6 +13,15 @@
            background: rgba(11,14,17,.92); backdrop-filter: blur(6px); z-index: 5; }
   .logo { font-weight: 800; font-size: 20px; letter-spacing: .5px; }
   .logo span { color: #f0b90b; }
+  .mainnav { display: flex; gap: 6px; }
+  .navbtn { background: transparent; color: #b7bdc6; border: 1px solid transparent;
+            border-radius: 999px; padding: 8px 18px; font-weight: 700; cursor: pointer; font-size: 15px; }
+  .navbtn:hover { color: #eaecef; }
+  .navbtn.active { background: #f0b90b; color: #181a20; }
+  .view[hidden] { display: none; }
+  .hero .cta { display: flex; gap: 10px; margin-top: 18px; justify-content: center; }
+  .ghostbtn { background: rgba(11,14,17,.55); color: #eaecef; border: 1px solid #f0b90b;
+              border-radius: 8px; padding: 9px 16px; font-weight: 700; cursor: pointer; font-size: 14px; }
   .hbtn { background: #f0b90b; color: #181a20; border: 0; border-radius: 8px;
           padding: 9px 16px; font-weight: 700; cursor: pointer; font-size: 14px; }
   .hero { position: relative; text-align: center; }
@@ -49,13 +58,19 @@
   details p { color: #b7bdc6; font-size: 14.5px; }
   footer { color: #848e9c; font-size: 12.5px; text-align: center; padding: 0 20px 40px; }
   @media (max-width: 640px) { .stats { grid-template-columns: 1fr 1fr; } .steps { grid-template-columns: 1fr; }
-                              .hero h1 { font-size: 32px; } }
+                              .hero h1 { font-size: 32px; } .logo { font-size: 16px; }
+                              .navbtn { padding: 7px 11px; font-size: 13.5px; } header { padding: 12px 12px; } }
 </style>
 </head>
 <body>
 
 <header>
   <div class="logo">NONCE<span>AGENT</span></div>
+  <nav class="mainnav">
+    <button class="navbtn active" data-view="home">Home</button>
+    <button class="navbtn" data-view="mint">Mint</button>
+    <button class="navbtn" data-view="market">Market</button>
+  </nav>
   <button class="hbtn" id="connect">Connect Wallet</button>
 </header>
 
@@ -67,12 +82,16 @@
     <p>The free mint that is earned, not clicked. Hold an Agent ID, solve the puzzle
        in your browser, mint your NonceAgent. Bots can't copy your work — every
        solution is bound to your wallet.</p>
+    <div class="cta">
+      <button class="hbtn" data-goto="mint">Start Minting</button>
+      <button class="ghostbtn" data-goto="market">Visit Market</button>
+    </div>
   </div>
 </section>
 
 <main>
-  <div class="card">
-    <div class="stats">
+  <div class="view" id="view-home">
+  <div class="card">    <div class="stats">
       <div class="stat"><b id="minted">–</b><span>Minted</span></div>
       <div class="stat"><b id="supply">3,333</b><span>Max Supply</span></div>
       <div class="stat"><b id="price">FREE</b><span>Mint Price</span></div>
@@ -82,8 +101,35 @@
     <div class="barlbl"><span id="barpct">0% minted</span><span>Max 3 per wallet · Agent ID required</span></div>
   </div>
 
-  <div class="card">
-    <p class="addr" id="addr"></p>
+  <div class="card">    <h2>Why Proof of Work?</h2>
+    <p style="color:#b7bdc6">Regular free mints are a gas war won by bots in one block.
+       NonceAgent flips it: the scarce resource is computation tied to a verified agent
+       identity. Solutions can't be shared, stockpiled, or replayed — the contract binds
+       each puzzle to your address and your mint count. One Agent ID, one human-paced
+       stream of work, up to 3 NFTs. Fair by construction, not by allowlist.</p>
+  </div>
+
+  <div class="card">    <h2>FAQ</h2>
+    <details open><summary>Is the mint really free?</summary>
+      <p>Yes — the mint price is 0. You pay only the BNB Chain network gas for your own
+         mint transaction (a few cents at most). Solving costs nothing.</p></details>
+    <details><summary>What do I need before minting?</summary>
+      <p>An Agent ID (name.ai) on BNB Chain in the wallet you connect, and a little BNB
+         in that wallet for gas.</p></details>
+    <details><summary>How long does solving take?</summary>
+      <p>The target is ~1 million hashes on average — typically a few seconds in a modern
+         browser. Difficulty is fixed at 20 leading zero bits.</p></details>
+    <details><summary>Can I mint from multiple wallets?</summary>
+      <p>Each wallet must hold its own Agent ID, and Agent IDs are one-per-person by
+         design. The puzzle must be solved separately by every wallet.</p></details>
+    <details><summary>Is the contract safe?</summary>
+      <p>NonceAgent is open-source, verified on BscScan, and ownerless — no admin keys,
+         no pause/freeze, no approvals. It never takes custody of your assets.</p></details>
+  </div>
+  </div>
+
+  <div class="view" id="view-mint" hidden>
+  <div class="card">    <p class="addr" id="addr"></p>
     <p id="agent-status">Connect your wallet to check your Agent ID and mint.</p>
     <div class="stats" style="margin-bottom:16px">
       <div class="stat"><b id="mine">–</b><span>Your Mints</span></div>
@@ -99,8 +145,20 @@
        on-chain, and you sign and confirm that transaction yourself in your own wallet.</p>
   </div>
 
-  <div class="card">
-    <h2>Market</h2>
+  <div class="card">    <h2>How to Mint</h2>
+    <div class="steps">
+      <div class="step"><b>01</b><p><strong>Hold an Agent ID.</strong> Claim your name.ai in the
+        Binance App (Wallet &gt; Agent ID). One per person, non-transferable.</p></div>
+      <div class="step"><b>02</b><p><strong>Solve the puzzle.</strong> Click Solve &amp; Mint —
+        your browser searches for a nonce whose hash clears the 20-bit difficulty target.</p></div>
+      <div class="step"><b>03</b><p><strong>Sign &amp; mint.</strong> Confirm the transaction in
+        your wallet. The NFT lands in the same wallet that did the work.</p></div>
+    </div>
+  </div>
+  </div>
+
+  <div class="view" id="view-market" hidden>
+  <div class="card">    <h2>Market</h2>
     <p style="color:#b7bdc6;margin-top:0">The built-in marketplace — trade NonceAgent directly
        here, no external site. Sellers keep 100% of the price (zero protocol fee). The NFT stays
        in the seller's wallet until the moment it sells.</p>
@@ -127,45 +185,6 @@
       <div id="my-listings"></div>
     </div>
   </div>
-
-  <div class="card">
-    <h2>How to Mint</h2>
-    <div class="steps">
-      <div class="step"><b>01</b><p><strong>Hold an Agent ID.</strong> Claim your name.ai in the
-        Binance App (Wallet &gt; Agent ID). One per person, non-transferable.</p></div>
-      <div class="step"><b>02</b><p><strong>Solve the puzzle.</strong> Click Solve &amp; Mint —
-        your browser searches for a nonce whose hash clears the 20-bit difficulty target.</p></div>
-      <div class="step"><b>03</b><p><strong>Sign &amp; mint.</strong> Confirm the transaction in
-        your wallet. The NFT lands in the same wallet that did the work.</p></div>
-    </div>
-  </div>
-
-  <div class="card">
-    <h2>Why Proof of Work?</h2>
-    <p style="color:#b7bdc6">Regular free mints are a gas war won by bots in one block.
-       NonceAgent flips it: the scarce resource is computation tied to a verified agent
-       identity. Solutions can't be shared, stockpiled, or replayed — the contract binds
-       each puzzle to your address and your mint count. One Agent ID, one human-paced
-       stream of work, up to 3 NFTs. Fair by construction, not by allowlist.</p>
-  </div>
-
-  <div class="card">
-    <h2>FAQ</h2>
-    <details open><summary>Is the mint really free?</summary>
-      <p>Yes — the mint price is 0. You pay only the BNB Chain network gas for your own
-         mint transaction (a few cents at most). Solving costs nothing.</p></details>
-    <details><summary>What do I need before minting?</summary>
-      <p>An Agent ID (name.ai) on BNB Chain in the wallet you connect, and a little BNB
-         in that wallet for gas.</p></details>
-    <details><summary>How long does solving take?</summary>
-      <p>The target is ~1 million hashes on average — typically a few seconds in a modern
-         browser. Difficulty is fixed at 20 leading zero bits.</p></details>
-    <details><summary>Can I mint from multiple wallets?</summary>
-      <p>Each wallet must hold its own Agent ID, and Agent IDs are one-per-person by
-         design. The puzzle must be solved separately by every wallet.</p></details>
-    <details><summary>Is the contract safe?</summary>
-      <p>NonceAgent is open-source, verified on BscScan, and ownerless — no admin keys,
-         no pause/freeze, no approvals. It never takes custody of your assets.</p></details>
   </div>
 </main>
 
@@ -389,6 +408,15 @@ $("solve").onclick = async () => {
   };
   worker.postMessage({ contract: NONCE_ADDR, user: me, mintIndex, difficulty: difficulty.toString() });
 };
+// ---------------- view navigation ----------------
+function showView(name) {
+  document.querySelectorAll(".view").forEach(v => { v.hidden = v.id !== "view-" + name; });
+  document.querySelectorAll(".navbtn").forEach(b => b.classList.toggle("active", b.dataset.view === name));
+  if (name === "market") loadMarket();
+  window.scrollTo({ top: 0 });
+}
+document.querySelectorAll(".navbtn").forEach(b => { b.onclick = () => showView(b.dataset.view); });
+document.querySelectorAll("[data-goto]").forEach(b => { b.onclick = () => showView(b.dataset.goto); });
 </script>
 </body>
 </html>
