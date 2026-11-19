@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AgentNonce — Proof-of-Work Free Mint for Agent ID Holders</title>
+<title>NonceAgent — Proof-of-Work Free Mint for Agent ID Holders</title>
 <style>
   * { box-sizing: border-box; }
   body { font-family: system-ui, sans-serif; margin: 0; background: #0b0e11; color: #eaecef; }
@@ -55,17 +55,17 @@
 <body>
 
 <header>
-  <div class="logo">AGENT<span>NONCE</span></div>
+  <div class="logo">NONCE<span>AGENT</span></div>
   <button class="hbtn" id="connect">Connect Wallet</button>
 </header>
 
 <section class="hero">
-  <img src="banner.webp" alt="AgentNonce">
+  <img src="banner.webp" alt="NonceAgent">
   <div class="overlay">
     <span class="live">FREE MINT LIVE</span>
     <h1>Mint by Proof of Work</h1>
     <p>The free mint that is earned, not clicked. Hold an Agent ID, solve the puzzle
-       in your browser, mint your AgentNonce. Bots can't copy your work — every
+       in your browser, mint your NonceAgent. Bots can't copy your work — every
        solution is bound to your wallet.</p>
   </div>
 </section>
@@ -100,6 +100,31 @@
   </div>
 
   <div class="card">
+    <h2>Market</h2>
+    <p style="color:#b7bdc6;margin-top:0">Every NonceAgent is a standard ERC-721 — after minting,
+       it trades freely on the open market. No lock-ups, no transfer restrictions.</p>
+    <div class="stats" style="margin-bottom:16px">
+      <div class="stat"><b id="floor">—</b><span>Floor Price</span></div>
+      <div class="stat"><b id="volume">—</b><span>Total Volume</span></div>
+      <div class="stat"><b id="listed">—</b><span>Listed</span></div>
+      <div class="stat"><b id="holders">—</b><span>Holders</span></div>
+    </div>
+    <div class="steps">
+      <div class="step"><b style="font-size:16px">Element Market</b>
+        <p style="margin-bottom:12px">The main NFT marketplace on BNB Chain — list, buy, and sell NonceAgent here.</p>
+        <button class="hbtn" id="btn-element" disabled>Opens at Launch</button></div>
+      <div class="step"><b style="font-size:16px">OpenSea</b>
+        <p style="margin-bottom:12px">NonceAgent is a standard ERC-721 on BSC, so it also appears on OpenSea once minted.</p>
+        <button class="hbtn" id="btn-opensea" disabled>Opens at Launch</button></div>
+      <div class="step"><b style="font-size:16px">BscScan</b>
+        <p style="margin-bottom:12px">Verify every mint, holder, and transfer directly on-chain — the contract is open-source.</p>
+        <button class="hbtn" id="btn-bscscan" disabled>Opens at Launch</button></div>
+    </div>
+    <p style="color:#848e9c;font-size:13px;margin-bottom:0">Market links and live floor/volume
+       activate automatically once the contract is deployed and the first mints land.</p>
+  </div>
+
+  <div class="card">
     <h2>How to Mint</h2>
     <div class="steps">
       <div class="step"><b>01</b><p><strong>Hold an Agent ID.</strong> Claim your name.ai in the
@@ -114,7 +139,7 @@
   <div class="card">
     <h2>Why Proof of Work?</h2>
     <p style="color:#b7bdc6">Regular free mints are a gas war won by bots in one block.
-       AgentNonce flips it: the scarce resource is computation tied to a verified agent
+       NonceAgent flips it: the scarce resource is computation tied to a verified agent
        identity. Solutions can't be shared, stockpiled, or replayed — the contract binds
        each puzzle to your address and your mint count. One Agent ID, one human-paced
        stream of work, up to 3 NFTs. Fair by construction, not by allowlist.</p>
@@ -135,15 +160,15 @@
       <p>Each wallet must hold its own Agent ID, and Agent IDs are one-per-person by
          design. The puzzle must be solved separately by every wallet.</p></details>
     <details><summary>Is the contract safe?</summary>
-      <p>AgentNonce is open-source, verified on BscScan, and ownerless — no admin keys,
+      <p>NonceAgent is open-source, verified on BscScan, and ownerless — no admin keys,
          no pause/freeze, no approvals. It never takes custody of your assets.</p></details>
   </div>
 </main>
 
 <footer>
-  AgentNonce contract (BNB Chain): <span id="contract-line">TBD after deployment</span><br>
+  NonceAgent contract (BNB Chain): <span id="contract-line">TBD after deployment</span><br>
   Agent ID contract: 0x60b9262456de011f7d15a54cdd8c48baaa8b022f (SPACE ID Agent ID)<br>
-  AgentNonce NFTs are collectibles that prove an agent did the work. No returns are
+  NonceAgent NFTs are collectibles that prove an agent did the work. No returns are
   promised. Trading involves risk — do your own research.
 </footer>
 
@@ -164,6 +189,19 @@ const ABI = [
 let provider, signer, me;
 const $ = id => document.getElementById(id);
 $("contract-line").textContent = NONCE_ADDR.startsWith("0x") ? NONCE_ADDR : "TBD after deployment";
+if (NONCE_ADDR.startsWith("0x")) {
+  const links = [
+    ["btn-element", "Trade on Element", "https://element.market/assets/bsc/" + NONCE_ADDR + "/1"],
+    ["btn-opensea", "View on OpenSea", "https://opensea.io/assets/bsc/" + NONCE_ADDR + "/1"],
+    ["btn-bscscan", "View on BscScan", "https://bscscan.com/token/" + NONCE_ADDR]
+  ];
+  for (const [id, label, url] of links) {
+    const b = $(id);
+    b.disabled = false;
+    b.textContent = label;
+    b.onclick = () => window.open(url, "_blank");
+  }
+}
 
 async function refresh() {
   if (!NONCE_ADDR.startsWith("0x")) return;
