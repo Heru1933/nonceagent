@@ -101,27 +101,31 @@
 
   <div class="card">
     <h2>Market</h2>
-    <p style="color:#b7bdc6;margin-top:0">Every NonceAgent is a standard ERC-721 — after minting,
-       it trades freely on the open market. No lock-ups, no transfer restrictions.</p>
+    <p style="color:#b7bdc6;margin-top:0">The built-in marketplace — trade NonceAgent directly
+       here, no external site. Sellers keep 100% of the price (zero protocol fee). The NFT stays
+       in the seller's wallet until the moment it sells.</p>
     <div class="stats" style="margin-bottom:16px">
       <div class="stat"><b id="floor">—</b><span>Floor Price</span></div>
-      <div class="stat"><b id="volume">—</b><span>Total Volume</span></div>
-      <div class="stat"><b id="listed">—</b><span>Listed</span></div>
-      <div class="stat"><b id="holders">—</b><span>Holders</span></div>
+      <div class="stat"><b id="listed-count">—</b><span>Listed Now</span></div>
+      <div class="stat"><b id="mkt-minted">—</b><span>Minted</span></div>
+      <div class="stat"><b id="mkt-cap">3</b><span>Max / Wallet</span></div>
     </div>
-    <div class="steps">
-      <div class="step"><b style="font-size:16px">Element Market</b>
-        <p style="margin-bottom:12px">The main NFT marketplace on BNB Chain — list, buy, and sell NonceAgent here.</p>
-        <button class="hbtn" id="btn-element" disabled>Opens at Launch</button></div>
-      <div class="step"><b style="font-size:16px">OpenSea</b>
-        <p style="margin-bottom:12px">NonceAgent is a standard ERC-721 on BSC, so it also appears on OpenSea once minted.</p>
-        <button class="hbtn" id="btn-opensea" disabled>Opens at Launch</button></div>
-      <div class="step"><b style="font-size:16px">BscScan</b>
-        <p style="margin-bottom:12px">Verify every mint, holder, and transfer directly on-chain — the contract is open-source.</p>
-        <button class="hbtn" id="btn-bscscan" disabled>Opens at Launch</button></div>
+    <div id="listings" class="steps">
+      <div class="step"><p style="margin:0">Market opens at launch — listings will appear here.</p></div>
     </div>
-    <p style="color:#848e9c;font-size:13px;margin-bottom:0">Market links and live floor/volume
-       activate automatically once the contract is deployed and the first mints land.</p>
+    <h3 style="margin:22px 0 8px">Sell yours</h3>
+    <div id="sell-box">
+      <p style="color:#848e9c;margin:0 0 10px">Connect your wallet to list your NonceAgent for sale.</p>
+      <div class="row">
+        <input id="sell-token" type="number" min="1" placeholder="Your token ID"
+               style="flex:1;background:#0b0e11;border:1px solid #2b3139;border-radius:10px;color:#eaecef;padding:11px">
+        <input id="sell-price" type="number" min="0" step="0.001" placeholder="Price (BNB)"
+               style="flex:1;background:#0b0e11;border:1px solid #2b3139;border-radius:10px;color:#eaecef;padding:11px">
+        <button class="hbtn" id="btn-list" disabled>List for Sale</button>
+      </div>
+      <p id="sell-status" style="color:#848e9c;font-size:13px"></p>
+      <div id="my-listings"></div>
+    </div>
   </div>
 
   <div class="card">
@@ -184,30 +188,126 @@ const ABI = [
   "function maxPerWallet() view returns (uint256)",
   "function difficulty() view returns (uint256)",
   "function mintedBy(address) view returns (uint256)",
-  "function balanceOf(address) view returns (uint256)"
+  "function balanceOf(address) view returns (uint256)",
+  "function ownerOf(uint256) view returns (address)",
+  "function approve(address to, uint256 tokenId)",
+  "function getApproved(uint256) view returns (address)",
+  "function isApprovedForAll(address owner, address operator) view returns (bool)"
 ];
 let provider, signer, me;
 const $ = id => document.getElementById(id);
 $("contract-line").textContent = NONCE_ADDR.startsWith("0x") ? NONCE_ADDR : "TBD after deployment";
-if (NONCE_ADDR.startsWith("0x")) {
-  const links = [
-    ["btn-element", "Trade on Element", "https://element.market/assets/bsc/" + NONCE_ADDR + "/1"],
-    ["btn-opensea", "View on OpenSea", "https://opensea.io/assets/bsc/" + NONCE_ADDR + "/1"],
-    ["btn-bscscan", "View on BscScan", "https://bscscan.com/token/" + NONCE_ADDR]
-  ];
-  for (const [id, label, url] of links) {
-    const b = $(id);
-    b.disabled = false;
-    b.textContent = label;
-    b.onclick = () => window.open(url, "_blank");
-  }
+
+// ---------------- built-in market ----------------
+const MARKET_ADDR = "PASTE_DEPLOYED_MARKET_ADDRESS";
+const MARKET_ABI = [
+  "function listedCount() view returns (uint256)",
+  "function listedTokenIds(uint256) view returns (uint256)",
+  "function getListing(uint256) view returns (address seller, uint256 price)",
+  "function list(uint256 tokenId, uint256 price)",
+  "function cancel(uint256 tokenId)",
+  "function buy(uint256 tokenId) payable"
+];
+const fmtBNB = (wei) => {
+  const s = ethers.formatEther(wei);
+  return s.includes(".") ? s.replace(/0+$/, "").replace(/\.$/, "") : s;
+};
+const short = (a) => a.slice(0, 6) + "…" + a.slice(-4);
+let marketListings = [];
+
+async function loadMarket() {
+  if (!MARKET_ADDR.startsWith("0x")) return;
+  try {
+    const mkt = new ethers.Contract(MARKET_ADDR, MARKET_ABI, provider || new ethers.JsonRpcProvider("https://bsc-dataseed.binance.org"));
+    const count = Number(await mkt.listedCount());
+    marketListings = [];
+    let floor = null;
+    for (let i = 0; i < count; i++) {
+      const id = Number(await mkt.listedTokenIds(i));
+      const [seller, price] = await mkt.getListing(id);
+      marketListings.push({ id, seller, price });
+      if (floor === null || price < floor) floor = price;
+    }
+    $("floor").textContent = floor === null ? "—" : fmtBNB(floor) + " BNB";
+    $("listed-count").textContent = count;
+    const box = $("listings");
+    if (!count) {
+      box.innerHTML = '<div class="step"><p style="margin:0">No listings yet — be the first to sell.</p></div>';
+    } else {
+      box.innerHTML = marketListings.map(l =>
+        `<div class="step"><b style="font-size:16px">NonceAgent #${l.id}</b>
+           <p style="margin-bottom:4px">${fmtBNB(l.price)} BNB</p>
+           <p style="margin-bottom:12px">Seller ${short(l.seller)}</p>
+           <button class="hbtn" onclick="buyToken(${l.id})">Buy</button></div>`).join("");
+    }
+    renderMyListings();
+  } catch (e) { /* market read is best-effort */ }
 }
+
+function renderMyListings() {
+  const box = $("my-listings");
+  if (!me) { box.innerHTML = ""; return; }
+  const mine = marketListings.filter(l => l.seller.toLowerCase() === me.toLowerCase());
+  box.innerHTML = mine.map(l =>
+    `<p style="margin:6px 0">Your listing: <b>#${l.id}</b> — ${fmtBNB(l.price)} BNB
+       <button class="hbtn" style="padding:5px 12px" onclick="cancelListing(${l.id})">Cancel</button></p>`).join("");
+}
+
+async function buyToken(id) {
+  try {
+    if (!signer) { $("sell-status").textContent = "Connect your wallet first (button at the top)."; return; }
+    const l = marketListings.find(x => x.id === id);
+    if (!l) return;
+    const mkt = new ethers.Contract(MARKET_ADDR, MARKET_ABI, signer);
+    $("sell-status").textContent = "Confirm the purchase in your wallet…";
+    const tx = await mkt.buy(id, { value: l.price });
+    await tx.wait();
+    $("sell-status").textContent = "Bought NonceAgent #" + id + " — it is in your wallet now.";
+    refresh(); loadMarket();
+  } catch (e) { $("sell-status").textContent = "Buy failed: " + (e.shortMessage || e.message); }
+}
+
+async function cancelListing(id) {
+  try {
+    if (!signer) { $("sell-status").textContent = "Connect your wallet first (button at the top)."; return; }
+    const mkt = new ethers.Contract(MARKET_ADDR, MARKET_ABI, signer);
+    const tx = await mkt.cancel(id);
+    await tx.wait();
+    $("sell-status").textContent = "Listing #" + id + " cancelled.";
+    loadMarket();
+  } catch (e) { $("sell-status").textContent = "Cancel failed: " + (e.shortMessage || e.message); }
+}
+
+$("btn-list").onclick = async () => {
+  try {
+    if (!signer) { $("sell-status").textContent = "Connect your wallet first (button at the top)."; return; }
+    const id = BigInt($("sell-token").value || "0");
+    const priceStr = $("sell-price").value || "0";
+    if (id <= 0n || Number(priceStr) <= 0) { $("sell-status").textContent = "Enter your token ID and a price above 0."; return; }
+    const nftW = new ethers.Contract(NONCE_ADDR, ABI, signer);
+    const mkt = new ethers.Contract(MARKET_ADDR, MARKET_ABI, signer);
+    $("sell-status").textContent = "Step 1/2: approve the market to transfer your NFT when it sells…";
+    const approved = await nftW.isApprovedForAll(me, MARKET_ADDR);
+    const single = await nftW.getApproved(id).catch(() => ethers.ZeroAddress);
+    if (!approved && single.toLowerCase() !== MARKET_ADDR.toLowerCase()) {
+      const txA = await nftW.approve(MARKET_ADDR, id);
+      await txA.wait();
+    }
+    $("sell-status").textContent = "Step 2/2: confirm the listing…";
+    const tx = await mkt.list(id, ethers.parseEther(priceStr));
+    await tx.wait();
+    $("sell-status").textContent = "Listed NonceAgent #" + id + " for " + priceStr + " BNB.";
+    loadMarket();
+  } catch (e) { $("sell-status").textContent = "List failed: " + (e.shortMessage || e.message); }
+};
 
 async function refresh() {
   if (!NONCE_ADDR.startsWith("0x")) return;
   const c = new ethers.Contract(NONCE_ADDR, ABI, provider);
   const minted = await c.totalMinted(), supply = await c.maxSupply();
   $("minted").textContent = minted;
+  $("mkt-minted").textContent = minted;
+  loadMarket();
   $("supply").textContent = Number(supply).toLocaleString();
   $("diff").textContent = (await c.difficulty()) + " bits";
   const pct = Number(minted) / Number(supply) * 100;
@@ -234,6 +334,8 @@ $("connect").onclick = async () => {
   me = await signer.getAddress();
   $("addr").textContent = me;
   $("connect").textContent = me.slice(0, 6) + "…" + me.slice(-4);
+  $("btn-list").disabled = false;
+  $("sell-box").querySelector("p").textContent = "Pick one of your token IDs, set a price, and list it — approval + listing, two wallet confirmations.";
   refresh();
 };
 
