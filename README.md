@@ -37,22 +37,39 @@ solutions are ever submitted on-chain.
 - Tests: `test/NonceAgent.t.sol` (Foundry) — non-agent rejection, invalid
   nonce rejection, valid mint, replay protection (same nonce dies after one
   use), wallet-binding of solutions, per-wallet cap, transfers.
-  Run: `forge test` (7/7 passing).
+  Run: `forge test` (13/13 passing, NFT + market).
+
+## Marketplace (built into the website)
+
+- `src/NonceMarket.sol` — fixed-price marketplace traded directly on this
+  project's website; there is no external marketplace dependency.
+- No custody: the NFT stays in the seller's wallet until the moment of
+  sale — the market only needs a standard ERC-721 approval.
+- Zero protocol fee: the seller receives 100% of the sale price.
+- Listings that go stale (NFT moved, approval revoked) cannot be bought
+  and can be cleaned up by anyone.
+- Tests: `test/NonceMarket.t.sol` — ownership/approval requirements,
+  list + buy with full seller payment, wrong-price rejection, cancel,
+  stale-listing protection.
 
 ## Safety (hackathon red lines)
 
 - No web QR / pairing-code login; the web page uses a standard injected
   wallet and the user signs and confirms every transaction themselves.
-- No asset transfers beyond the user's own mint, no approvals, no promised
-  returns. The NFT is a collectible proving an agent did the work.
+- No asset transfers beyond the user's own mint and their own voluntary
+  marketplace listings — every transfer is initiated and signed by the
+  owner themselves. No promised returns. The NFT is a collectible proving
+  an agent did the work.
 - Contract is open-source and ownerless.
 
 ## Layout
 
-- `src/NonceAgent.sol` — contract
-- `test/NonceAgent.t.sol` — tests
+- `src/NonceAgent.sol` — NFT contract
+- `src/NonceMarket.sol` — built-in marketplace contract
+- `test/NonceAgent.t.sol`, `test/NonceMarket.t.sol` — tests
 - `web/index.html` — single-file frontend with an in-browser Web Worker
-  solver (connect wallet → Solve & Mint → sign)
+  solver (connect wallet → Solve & Mint → sign) and the built-in market
+  (live listings, buy, list yours, cancel)
 
 ## Status
 
