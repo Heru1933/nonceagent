@@ -60,6 +60,51 @@
   @media (max-width: 640px) { .stats { grid-template-columns: 1fr 1fr; } .steps { grid-template-columns: 1fr; }
                               .hero h1 { font-size: 32px; } .logo { font-size: 16px; }
                               .navbtn { padding: 7px 11px; font-size: 13.5px; } header { padding: 12px 12px; } }
+  body.mint-light { background: linear-gradient(180deg, #F7D1B7, #FADFC1 55%, #F8EFE3); }
+  body.mint-light footer { color: #7a6a5f; }
+  body.mint-light .ok { color: #0a8a54; }
+  body.mint-light .warn { color: #d92d20; }
+  .cm-head { text-align: center; margin: 6px 0 26px; }
+  .cm-head h2 { color: #2A1D15; font-size: 36px; margin: 0 0 8px; }
+  .cm-head p { color: #7a6a5f; max-width: 640px; margin: 0 auto; font-size: 16.5px; }
+  .cm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
+  .cm-preview, .cm-card { background: #FFFAF3; border-radius: 24px; box-shadow: 0 18px 44px rgba(58,36,20,.15); color: #2A1D15; }
+  .cm-preview { padding: 14px; }
+  .cm-imgwrap { position: relative; }
+  .cm-imgwrap img { width: 100%; border-radius: 18px; display: block; }
+  .cm-live { position: absolute; top: 12px; right: 12px; background: #1db954; color: #fff; font-weight: 800; font-size: 12px; border-radius: 999px; padding: 5px 12px; display: inline-flex; align-items: center; gap: 6px; }
+  .cm-live i { width: 8px; height: 8px; border-radius: 50%; background: #fff; display: block; }
+  .cm-panel { padding: 16px 8px 6px; }
+  .cm-row { display: flex; justify-content: space-between; align-items: baseline; padding: 9px 0; border-bottom: 1px dashed #EFE3D2; }
+  .cm-row span { color: #8a7a6d; font-size: 12.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+  .cm-row b { color: #2A1D15; font-size: 16px; }
+  .cm-row b em { color: #DB883E; font-style: normal; }
+  .cm-row b small { color: #8a7a6d; font-weight: 600; }
+  .cm-bar { height: 8px; background: #F5E8D6; border-radius: 999px; overflow: hidden; margin: 14px 0 4px; }
+  .cm-bar i { display: block; height: 100%; background: #E08B53; width: 0%; }
+  .cm-coll { display: flex; gap: 12px; align-items: center; margin-top: 14px; }
+  .cm-mark { width: 44px; height: 44px; border-radius: 50%; background: #372A22; color: #f0b90b; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 20px; flex: none; }
+  .cm-colltxt b { display: block; font-size: 17px; }
+  .cm-colltxt span { color: #8a7a6d; font-size: 13.5px; }
+  .cm-verified { color: #159947; font-weight: 700; font-size: 13.5px; margin: 10px 0 4px; }
+  .cm-card { padding: 28px; }
+  .cm-card .addr { color: #8a7a6d; }
+  .cm-price span { display: block; color: #8a7a6d; font-size: 12.5px; font-weight: 700; letter-spacing: .08em; }
+  .cm-price b { font-size: 34px; color: #2A1D15; }
+  .cm-price b small { font-size: 15px; color: #8a7a6d; font-weight: 600; }
+  .cm-card #agent-status { color: #5c4f45; }
+  .cm-rows { margin: 8px 0 20px; }
+  .cm-mint { width: 100%; height: 56px; background: #2A1D15; color: #fff; border: 0; border-radius: 13px; font-size: 17px; font-weight: 700; cursor: pointer; }
+  .cm-mint:disabled { opacity: .45; cursor: not-allowed; }
+  .cm-card progress { accent-color: #E08B53; width: 100%; height: 10px; }
+  .cm-card #solve-msg { color: #5c4f45; }
+  .cm-note { color: #8a7a6d; font-size: 13.5px; margin-bottom: 0; }
+  .cm-how { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 28px; }
+  .cm-step { background: #FFFAF3; border-radius: 20px; box-shadow: 0 12px 30px rgba(58,36,20,.10); padding: 20px; color: #2A1D15; }
+  .cm-step b { color: #DB883E; font-size: 20px; display: block; margin-bottom: 6px; }
+  .cm-step p { color: #7a6a5f; font-size: 14px; margin: 0; }
+  .cm-step p strong { color: #2A1D15; }
+  @media (max-width: 860px) { .cm-grid { grid-template-columns: 1fr; } .cm-how { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -74,7 +119,7 @@
   <button class="hbtn" id="connect">Connect Wallet</button>
 </header>
 
-<section class="hero">
+<section class="hero" id="hero">
   <img src="banner.webp" alt="NonceAgent">
   <div class="overlay">
     <span class="live">FREE MINT LIVE</span>
@@ -129,31 +174,48 @@
   </div>
 
   <div class="view" id="view-mint" hidden>
-  <div class="card">    <p class="addr" id="addr"></p>
-    <p id="agent-status">Connect your wallet to check your Agent ID and mint.</p>
-    <div class="stats" style="margin-bottom:16px">
-      <div class="stat"><b id="mine">–</b><span>Your Mints</span></div>
-      <div class="stat"><b id="own">–</b><span>You Own</span></div>
-      <div class="stat"><b id="cap">3</b><span>Wallet Cap</span></div>
-      <div class="stat"><b id="gas">~0</b><span>Gas Only</span></div>
-    </div>
-    <button class="bigbtn" id="solve" disabled>Solve &amp; Mint</button>
-    <p id="solve-msg"></p>
-    <progress id="prog" value="0" max="100" style="display:none"></progress>
-    <p style="color:#b7bdc6;font-size:14px;margin-bottom:0">Solving runs 100% in your browser —
-       failed attempts cost nothing and never touch the chain. Only a valid solution is sent
-       on-chain, and you sign and confirm that transaction yourself in your own wallet.</p>
+  <div class="cm-head">
+    <h2>Mint NonceAgent</h2>
+    <p>The free mint that's earned, not clicked. Hold an Agent ID, solve the proof-of-work in your browser, mint your NonceAgent.</p>
   </div>
-
-  <div class="card">    <h2>How to Mint</h2>
-    <div class="steps">
-      <div class="step"><b>01</b><p><strong>Hold an Agent ID.</strong> Claim your name.ai in the
-        Binance App (Wallet &gt; Agent ID). One per person, non-transferable.</p></div>
-      <div class="step"><b>02</b><p><strong>Solve the puzzle.</strong> Click Solve &amp; Mint —
-        your browser searches for a nonce whose hash clears the 20-bit difficulty target.</p></div>
-      <div class="step"><b>03</b><p><strong>Sign &amp; mint.</strong> Confirm the transaction in
-        your wallet. The NFT lands in the same wallet that did the work.</p></div>
+  <div class="cm-grid">
+    <div class="cm-preview">
+      <div class="cm-imgwrap">
+        <img src="banner.webp" alt="NonceAgent">
+        <span class="cm-live"><i></i>Live</span>
+      </div>
+      <div class="cm-panel">
+        <div class="cm-row"><span>Price</span><b>FREE</b></div>
+        <div class="cm-row"><span>Remaining</span><b><em id="cm-remaining">3,333</em> / 3,333</b></div>
+        <div class="cm-bar"><i id="cm-barfill"></i></div>
+        <div class="cm-coll">
+          <div class="cm-mark">#</div>
+          <div class="cm-colltxt"><b>NonceAgent</b><span>Collection: NonceAgent</span></div>
+        </div>
+        <p class="cm-verified">&#10003; Verified &middot; Open-source &middot; Ownerless</p>
+      </div>
     </div>
+    <div class="cm-card">
+      <p class="addr" id="addr"></p>
+      <div class="cm-price"><span>PRICE</span><b>FREE <small>+ network gas</small></b></div>
+      <p id="agent-status">Connect your wallet to check your Agent ID and mint.</p>
+      <div class="cm-rows">
+        <div class="cm-row"><span>Minted</span><b><span id="cm-minted">&ndash;</span> <small id="cm-pct"></small></b></div>
+        <div class="cm-row"><span>Your mints</span><b><span id="mine">&ndash;</span> / <span id="cap">3</span></b></div>
+        <div class="cm-row"><span>You own</span><b id="own">&ndash;</b></div>
+        <div class="cm-row"><span>Difficulty</span><b>20 bits</b></div>
+        <div class="cm-row"><span>Max per wallet</span><b>3</b></div>
+      </div>
+      <button class="cm-mint" id="solve" disabled>Solve &amp; Mint</button>
+      <progress id="prog" value="0" max="100" style="display:none"></progress>
+      <p id="solve-msg"></p>
+      <p class="cm-note">Solving runs 100% in your browser &mdash; failed attempts cost nothing and never touch the chain. Only a valid solution goes on-chain, and you sign and confirm it yourself in your own wallet.</p>
+    </div>
+  </div>
+  <div class="cm-how">
+    <div class="cm-step"><b>01</b><p><strong>Hold an Agent ID.</strong> Claim your name.ai in the Binance App (Wallet &gt; Agent ID). One per person, non-transferable.</p></div>
+    <div class="cm-step"><b>02</b><p><strong>Solve the puzzle.</strong> Click Solve &amp; Mint &mdash; your browser searches for a nonce whose hash clears the 20-bit difficulty target.</p></div>
+    <div class="cm-step"><b>03</b><p><strong>Sign &amp; mint.</strong> Confirm the transaction in your wallet. The NFT lands in the same wallet that did the work.</p></div>
   </div>
   </div>
 
@@ -332,6 +394,10 @@ async function refresh() {
   const pct = Number(minted) / Number(supply) * 100;
   $("barfill").style.width = pct + "%";
   $("barpct").textContent = pct.toFixed(1) + "% minted";
+  $("cm-minted").textContent = minted;
+  $("cm-pct").textContent = "(" + pct.toFixed(2) + "% minted)";
+  $("cm-remaining").textContent = (Number(supply) - Number(minted)).toLocaleString();
+  $("cm-barfill").style.width = pct + "%";
   if (!me) return;
   const agentId = new ethers.Contract(AGENT_ID, ERC721_ABI, provider);
   const holds = (await agentId.balanceOf(me)) > 0n;
@@ -412,6 +478,8 @@ $("solve").onclick = async () => {
 function showView(name) {
   document.querySelectorAll(".view").forEach(v => { v.hidden = v.id !== "view-" + name; });
   document.querySelectorAll(".navbtn").forEach(b => b.classList.toggle("active", b.dataset.view === name));
+  document.body.classList.toggle("mint-light", name === "mint");
+  $("hero").style.display = name === "home" ? "" : "none";
   if (name === "market") loadMarket();
   window.scrollTo({ top: 0 });
 }
